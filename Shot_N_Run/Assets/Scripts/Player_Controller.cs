@@ -53,6 +53,12 @@ public class Player_Controller : MonoBehaviour
 
     private Rigidbody rb;
 
+    //Visual Variables
+    [SerializeField] private MeshRenderer[] buttons = new MeshRenderer[3];
+    [SerializeField] private Material chargedMat;
+    [SerializeField] private Material unchargedMat;
+    [SerializeField] private Material superchargeMat;
+
     private void Start()
     {
         rb = GetComponent<Rigidbody>();
@@ -84,6 +90,7 @@ public class Player_Controller : MonoBehaviour
 
     private void MyInput()
     {
+        //what have you done
         horizontalInput = Input.GetAxisRaw("Horizontal");
         verticalInput = Input.GetAxisRaw("Vertical");
 
@@ -93,10 +100,11 @@ public class Player_Controller : MonoBehaviour
 
             Jump();
 
-            Invoke(nameof(ResetJump), jumpCooldown);
+            Invoke(nameof(ResetJump), jumpCooldown); //Why is this necessary?
         }
-
-        if (Input.GetKeyDown(launchKey) && charges > 0 && readyToLaunch && !grounded && !superCharged)
+        
+        #region Launch Code
+        if (Input.GetKeyDown(launchKey) && charges > 0 && readyToLaunch && !superCharged)
         {
             readyToLaunch = false;
 
@@ -104,7 +112,7 @@ public class Player_Controller : MonoBehaviour
 
             Invoke(nameof(ResetLaunch), launchCooldown);
 
-        } else if (Input.GetKeyDown(launchKey) && readyToLaunch && !grounded && superCharged)
+        } else if (Input.GetKeyUp(reloadKey) && readyToLaunch && superCharged)
         {
             readyToLaunch = false;
             chargingTimer = 0;
@@ -114,7 +122,8 @@ public class Player_Controller : MonoBehaviour
 
             Invoke(nameof(ResetLaunch), launchCooldown);
         }
-        
+        #endregion
+        #region Reload Code
         if (Input.GetKeyUp(reloadKey) && readyToReload && charges < 3)
         {
             readyToReload = false;
@@ -145,13 +154,15 @@ public class Player_Controller : MonoBehaviour
                 readyToLaunch = true;
             }
         }
-
+        #endregion
+        //idek what this means man
         if (chargingTimer >= timeToOverheat)
         {
-            Dead();
+            Dead(); //???
         }
         else if (chargingTimer >= timeToCharge)
         {
+            UpdateGun(true);
             superCharged = true;
         }
         else
@@ -193,11 +204,13 @@ public class Player_Controller : MonoBehaviour
         rb.AddForce(launchDirection.normalized * force, ForceMode.Impulse);
 
         charges--;
+        UpdateGun(false);
     }
 
     private void Reload()
     {
         charges++;
+        UpdateGun(false);
     }
 
     private void ResetLaunch()
@@ -213,5 +226,24 @@ public class Player_Controller : MonoBehaviour
     public void Dead()
     {
         Debug.Log("You Ded");
+    }
+
+    private void UpdateGun(bool superCharged)
+    {
+        for(int i = 0; i < 3; i++)
+        {
+            if(superCharged) 
+            {
+                buttons[i].material = superchargeMat;
+                continue;
+            } 
+
+            if(i >= charges)
+            {
+                buttons[i].material = unchargedMat;
+                continue;
+            }
+            buttons[i].material = chargedMat;
+        }
     }
 }
